@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 from scipy import stats as st
+import time
+import itertools
+
 
 class Bet:
 
@@ -47,7 +50,7 @@ class Roll:
         pass
 
 
-#start_time = time.time()
+start_time = time.time()
 #Table data
 num_players = 8
 
@@ -55,8 +58,9 @@ num_players = 8
 num_rolls = 1000
 seed_seed = np.random.randint(0, 100000)
 seed = np.random.seed(seed_seed)
-die_1 = np.random.randint(1, 7, num_rolls)
-die_2 = np.random.randint(1, 7, num_rolls)
+die_sides = [1, 2, 3, 4, 5, 6]
+die_1 = np.random.choice(die_sides, num_rolls)
+die_2 = np.random.choice(die_sides, num_rolls)
 dice_sum = die_1 + die_2
 
 
@@ -237,24 +241,29 @@ bets_dict = dict({"pass_line": 1, "dont_pass": 1, "come": 1, "dont_come": 1,
                   "craps2": 30, "craps3": 15, "craps11": 15, "craps12": 30,
                   "hop22": 30, "hop33": 30, "hop44": 30, "hop55": 30, "hop13": 15, "hop14": 15, "hop15": 15, "hop16": 15, "hop23": 15, "hop24": 15, "hop25": 15, "hop26": 15, "hop34": 15, "hop35": 15, "hop36": 15, "hop45": 15, "hop46": 15})
 
-actual_odds_dict = dict({"pass_line": 244/495, "dont_pass": 2847/5940, "come": 251/495, "dont_come": 2847/5940})
+actual_odds_dict = dict({"pass_line": 244/495, "dont_pass": 2847/5940, "come": 244/495, "dont_come": 2847/5940,
+                    })
 
 bets_list = list(bets_dict.keys())
 odds_list = list(bets_dict.values())
-
 
 
 player_bets = ['pass_line']
 player_wagers = [10]
 player_odds = bets_dict[player_bets[0]]
 
+
+#Create a summary DataFrame
 player_win_pass = win_pass * player_wagers
 game_data_titles = ['']
-game_data = np.zeros((3,6))
-game_summary = pd.DataFrame(game_data, columns = ['Bet', 'Amount Won', 'Wager', 'Rolls Total', 'Rolls Won', 'Rolls Lost'])
-game_summary.loc[1, 'Bet'] = "pass"
+game_data = np.zeros((4,11))
+game_summary = pd.DataFrame(game_data, columns = ['Bet', 'Win Chance', 'House Edge', 'Active %', 'Amount Won', 'Wager', 'Total Wagered', 'Rolls Total', 'Rolls Won', 'Rolls Lost', 'Rolls Pushed'])
+game_summary['Bet'] = bets_list[:4]
+game_summary['Win Chance'] = actual_odds_dict.values()
+
 print(player_bets[0], " Amount won: $", np.sum(player_win_pass), "Wins:", sum(1 for i in player_win_pass if i > 0), "Losses:", sum(1 for i in player_win_pass if i < 0))
 print(game_summary)
+
 
 """
 
@@ -342,7 +351,6 @@ print(np.stack((dice_sum, point, comeout)))
 unique, counts = np.unique(dice_sum, return_counts=True)
 dice_sum_stats = dict(zip(unique, counts))
 print("Dice rolls:", dice_sum_stats)
-
-print("Run time: ", f'{(time.time() - start_time2)*1000:.3f}', "ms", seed)
-
 """
+print("Run time: ", f'{(time.time() - start_time)*1000:.3f}', "ms", seed_seed)
+
