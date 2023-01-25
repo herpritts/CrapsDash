@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats as st
 import time
-import itertools
+import os
 
 
 class Bet:
@@ -43,6 +43,8 @@ class Roll:
         self.die1 = die1
         self.die2 = die2 
 
+    
+
     def dice_sum(self, die1, die2):
         self.dice_sum = die1 + die2
 
@@ -55,13 +57,22 @@ start_time = time.time()
 num_players = 8
 
 #Generate dice rolls
-num_rolls = 1000
-seed_seed = np.random.randint(0, 100000)
-seed = np.random.seed(seed_seed)
-die_sides = [1, 2, 3, 4, 5, 6]
-die_1 = np.random.choice(die_sides, num_rolls)
-die_2 = np.random.choice(die_sides, num_rolls)
+num_rolls = 30
+random_data = os.urandom(6)
+seed = int.from_bytes(random_data, byteorder="big")
+rng = np.random.default_rng(seed)
+die_1 = rng.integers(1, high = 7, size = num_rolls, dtype = int)
+die_2 = rng.integers(1, high = 7, size = num_rolls, dtype = int)
 dice_sum = die_1 + die_2
+
+dice_array = np.zeros((13, num_rolls), dtype = int)
+
+for i in range(0, num_rolls):
+    dice_array[dice_sum[i], i] = 1
+print(dice_array)
+
+comeoutA = np.ones(num_rolls, dtype=int)
+
 
 
 #Determine table status
@@ -76,7 +87,7 @@ for roll in range(0, num_rolls - 1):
         if dice_sum[roll] in {7, 11}:
             comeout[roll + 1] = 1
         elif dice_sum[roll] in {2, 3, 12}:
-            point[roll + 1] == 0
+            point[roll + 1] = 0
         else:
             comeout[roll + 1] = 0
             point[roll + 1] = dice_sum[roll]
@@ -263,6 +274,7 @@ game_summary['Win Chance'] = actual_odds_dict.values()
 
 print(player_bets[0], " Amount won: $", np.sum(player_win_pass), "Wins:", sum(1 for i in player_win_pass if i > 0), "Losses:", sum(1 for i in player_win_pass if i < 0))
 print(game_summary)
+print(seed)
 
 
 """
@@ -352,5 +364,5 @@ unique, counts = np.unique(dice_sum, return_counts=True)
 dice_sum_stats = dict(zip(unique, counts))
 print("Dice rolls:", dice_sum_stats)
 """
-print("Run time: ", f'{(time.time() - start_time)*1000:.3f}', "ms", seed_seed)
+print("Run time: ", f'{(time.time() - start_time)*1000:.3f}', "ms", seed)
 
